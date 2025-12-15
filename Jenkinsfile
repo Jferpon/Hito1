@@ -26,6 +26,12 @@ pipeline {
                 archiveArtifacts artifacts: 'build.txt', fingerprint: true
             }
         }
+           stage('Deploy') {
+            steps {
+        	echo "Desplegando aplicacion..."
+		sh 'cp build.txt  /var/www/app/'
+            }
+        }
     }
 }
 
