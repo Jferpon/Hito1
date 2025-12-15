@@ -29,7 +29,7 @@ pipeline {
            stage('Deploy') {
             steps {
         	echo "Desplegando aplicacion..."
-		sh 'cp build.txt  /var/www/app/'
+		sh  'cp build.txt  /var/www/app/'
             }
         }
     }
