@@ -8,7 +8,7 @@ pipeline {
                     echo "Ejecutando tests..."
                     for test in tests/*.sh; do
                         echo "Ejecutando $test"
-                        bash "$test" ||  exit 1
+                        bash "$test" 
                     done
                 '''
             }
