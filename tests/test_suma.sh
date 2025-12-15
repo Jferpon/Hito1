@@ -11,7 +11,7 @@ RESULTADO=$((A + B))
 echo "Probando suma: $A + $B = $RESULTADO"
 
 # Test
-if [ "$RESULTADO" -eq "$RESULTADO_ESPERADO" ]; then
+if [ "$RESULTADO" -eq "$RESULTADO_ESPERAD" ]; then
     echo "TEST OK"
     exit 0
 else
