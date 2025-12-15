@@ -5,7 +5,7 @@ pipeline {
         stage('Build') {
             steps {
                     echo "Ejecutando build..." 
-                 sh'  echo "Hola, esto es un artefacto" > build.txt'
+                 sh'  cho "Hola, esto es un artefacto" > build.txt'
                 
             }
         }
