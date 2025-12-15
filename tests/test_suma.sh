@@ -3,7 +3,7 @@
 # Valores a probar
 A=2
 B=3
-RESULTADO_ESPERADO=6
+RESULTADO_ESPERADO=5
 
 # Suma
 RESULTADO=$((A + B))
