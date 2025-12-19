@@ -7,8 +7,7 @@ pipeline {
 
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm-cache"
-        APP_IMAGE = "hito-jenkins-app:latest"   // nombre de la imagen Docker
-        DEPLOY_PORT = "3000"                    // puerto de la app
+        DEPLOY_PATH = "/var/www/html/hitoJenkins"
     }
 
     stages {
@@ -48,42 +47,46 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent any   // Ejecuta en el nodo host para usar Docker
+            agent any
+            when {
+                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
+            }
             steps {
-                echo "Desplegando la aplicación en Docker (host Jenkins)"
-
-                // Construir imagen Docker
+                echo "Desplegando aplicación al host Jenkins"
                 sh """
-                docker build -t $APP_IMAGE .
+                    mkdir -p $DEPLOY_PATH
+                    cp -r build/* $DEPLOY_PATH/
                 """
+                echo "Archivos copiados a $DEPLOY_PATH"
+            }
+        }
 
-                // Detener contenedor existente si lo hay
+        stage('Verify Deployment') {
+            agent any
+            steps {
+                echo "Verificando despliegue"
                 sh """
-                if [ \$(docker ps -q -f name=hito-jenkins-container) ]; then
-                    docker stop hito-jenkins-container
-                    docker rm hito-jenkins-container
-                fi
+                    if [ -f $DEPLOY_PATH/index.html ]; then
+                        echo "index.html encontrado en $DEPLOY_PATH"
+                        ls -lh $DEPLOY_PATH
+                    else
+                        echo "index.html NO encontrado"
+                        exit 1
+                    fi
                 """
-
-                // Ejecutar nuevo contenedor
-                sh """
-                docker run -d --name hito-jenkins-container -p $DEPLOY_PORT:3000 $APP_IMAGE
-                """
-
-                echo "Aplicación desplegada en el puerto $DEPLOY_PORT"
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline terminado"
-        }
         success {
-            echo "Todo pasó correctamente, aplicación desplegada"
+            echo "Pipeline completado correctamente. Aplicación desplegada en $DEPLOY_PATH"
         }
         failure {
             echo "Hubo fallos en el pipeline, Deploy no ejecutado"
+        }
+        always {
+            echo "Pipeline finalizado"
         }
     }
 }
