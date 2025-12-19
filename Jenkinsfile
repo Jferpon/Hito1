@@ -1,9 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:24'
-        }
-    }
+    agent none
 
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm-cache"
@@ -12,63 +8,77 @@ pipeline {
 
     stages {
 
-        stage('Checkout') {
-            steps {
-                echo "Checkout del repositorio"
-                checkout scm
+        stage('Build & Test') {
+            agent {
+                docker {
+                    image 'node:24'
+                }
             }
-        }
+            stages {
 
-        stage('Install') {
-            steps {
-                echo "Instalando dependencias"
-                sh 'npm ci --cache $NPM_CONFIG_CACHE'
-            }
-        }
+                stage('Checkout') {
+                    steps {
+                        echo "Checkout del repositorio"
+                        checkout scm
+                    }
+                }
 
-        stage('Test') {
-            steps {
-                echo "Ejecutando tests"
-                sh 'npm test -- --ci --watchAll=false'
-            }
-        }
+                stage('Install') {
+                    steps {
+                        echo "Instalando dependencias"
+                        sh 'npm ci --cache $NPM_CONFIG_CACHE'
+                    }
+                }
 
-        stage('Build') {
-            steps {
-                echo "Construyendo la aplicación"
-                sh 'CI=false npm run build'
-            }
-        }
+                stage('Test') {
+                    steps {
+                        echo "Ejecutando tests"
+                        sh 'npm test -- --ci --watchAll=false'
+                    }
+                }
 
-        stage('Archive') {
-            steps {
-                echo "Archivando artefactos"
-                archiveArtifacts artifacts: 'build/**', fingerprint: true
+                stage('Build') {
+                    steps {
+                        echo "Construyendo la aplicación"
+                        sh 'CI=false npm run build'
+                    }
+                }
+
+                stage('Archive') {
+                    steps {
+                        echo "Archivando artefactos"
+                        archiveArtifacts artifacts: 'build/**', fingerprint: true
+                    }
+                }
             }
         }
 
         stage('Deploy') {
-            when {
-                expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
-            }
+            agent any
             steps {
-                echo "Desplegando aplicación"
+                echo "Desplegando aplicación en el host Jenkins"
+
                 sh """
-                    rm -rf ${DEPLOY_PATH}/*
-                    cp -r build/* ${DEPLOY_PATH}/
+                    mkdir -p $DEPLOY_PATH
+                    rm -rf $DEPLOY_PATH/*
+                    cp -r build/* $DEPLOY_PATH/
                 """
+
+                echo "Archivos copiados a $DEPLOY_PATH"
             }
         }
 
         stage('Verify Deployment') {
+            agent any
             steps {
                 echo "Verificando despliegue"
+
                 sh """
-                    if [ -f ${DEPLOY_PATH}/index.html ]; then
-                        echo "Despliegue correcto"
-                        ls -lh ${DEPLOY_PATH}
+                    if [ -f $DEPLOY_PATH/index.html ]; then
+                        echo "index.html encontrado"
+                        ls -lh $DEPLOY_PATH
                     else
-                        echo "Error: index.html no encontrado"
+                        echo "index.html NO encontrado"
                         exit 1
                     fi
                 """
@@ -79,7 +89,6 @@ pipeline {
     post {
         success {
             echo "Pipeline completado correctamente"
-            echo "Aplicación disponible en http://localhost/hitoJenkins"
         }
         failure {
             echo "El pipeline ha fallado"
