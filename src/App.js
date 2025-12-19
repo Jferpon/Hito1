@@ -3,7 +3,7 @@
 function App() {
   return (
     <div>
-      <h1>Hitos CI/CD</h1>
+      <h1>Hitos CI/CD con un CAMBIO</h1>
       <p>Aplicación React para pruebas de Jenkins</p>
       <span data-testid="resultado">OK</span>
     </div>
