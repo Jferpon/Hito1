@@ -35,25 +35,24 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "Construyendo la aplicación React"
+                echo "Construyendo la aplicación"
                 sh 'CI=false npm run build'
             }
         }
 
         stage('Archive') {
             steps {
-                echo "Archivando artefactos del build"
+                echo "Archivando artefactos"
                 archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
 
         stage('Deploy') {
-            agent { label 'master' }
             when {
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
-                echo "Desplegando aplicación en ${DEPLOY_PATH}"
+                echo "Desplegando aplicación"
                 sh """
                     rm -rf ${DEPLOY_PATH}/*
                     cp -r build/* ${DEPLOY_PATH}/
@@ -62,15 +61,14 @@ pipeline {
         }
 
         stage('Verify Deployment') {
-            agent { label 'master' }
             steps {
                 echo "Verificando despliegue"
                 sh """
                     if [ -f ${DEPLOY_PATH}/index.html ]; then
-                        echo "index.html encontrado"
+                        echo "Despliegue correcto"
                         ls -lh ${DEPLOY_PATH}
                     else
-                        echo "index.html NO encontrado"
+                        echo "Error: index.html no encontrado"
                         exit 1
                     fi
                 """
@@ -81,7 +79,7 @@ pipeline {
     post {
         success {
             echo "Pipeline completado correctamente"
-            echo "Aplicación desplegada en http://localhost/hitoJenkins"
+            echo "Aplicación disponible en http://localhost/hitoJenkins"
         }
         failure {
             echo "El pipeline ha fallado"
