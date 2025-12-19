@@ -2,12 +2,13 @@ pipeline {
     agent {
         docker {
             image 'node:24'
-            
         }
     }
 
     environment {
         NPM_CONFIG_CACHE = "${WORKSPACE}/.npm-cache"
+        APP_IMAGE = "hito-jenkins-app:latest"   // nombre de la imagen Docker
+        DEPLOY_PORT = "3000"                    // puerto de la app
     }
 
     stages {
@@ -45,6 +46,32 @@ pipeline {
                 archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
+
+        stage('Deploy') {
+            steps {
+                echo "Desplegando la aplicación en Docker"
+
+                // Construir imagen Docker usando build
+                sh """
+                docker build -t $APP_IMAGE .
+                """
+
+                // Detener contenedor existente si lo hay
+                sh """
+                if [ \$(docker ps -q -f name=hito-jenkins-container) ]; then
+                    docker stop hito-jenkins-container
+                    docker rm hito-jenkins-container
+                fi
+                """
+
+                // Ejecutar nuevo contenedor
+                sh """
+                docker run -d --name hito-jenkins-container -p $DEPLOY_PORT:3000 $APP_IMAGE
+                """
+
+                echo "Aplicación desplegada en el puerto $DEPLOY_PORT"
+            }
+        }
     }
 
     post {
@@ -52,10 +79,10 @@ pipeline {
             echo "Pipeline terminado"
         }
         success {
-            echo "Todo pasó correctamente"
+            echo "Todo pasó correctamente, aplicación desplegada"
         }
         failure {
-            echo "Hubo fallos en el pipeline"
+            echo "Hubo fallos en el pipeline, Deploy no ejecutado"
         }
     }
 }
