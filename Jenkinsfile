@@ -1,12 +1,10 @@
 pipeline {
     agent {
-        docker { 
-            image 'node:24' 
-        }
+        docker { image 'node:24' }
     }
 
     environment {
-        // Opcional: forzar cache de npm en workspace
+        // Cache local dentro del workspace
         NPM_CONFIG_CACHE = "${env.WORKSPACE}/.npm-cache"
     }
 
@@ -19,22 +17,15 @@ pipeline {
 
         stage('Install') {
             steps {
-                // Configura cache local y luego instala dependencias
-                sh 'npm config set cache $NPM_CONFIG_CACHE --global'
+                
+                sh 'npm config set cache $NPM_CONFIG_CACHE'
                 sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
-                // Ejecuta los tests y falla si alguno no pasa
                 sh 'npm test -- --watchAll=false'
-            }
-            post {
-                always {
-                    // Guardar los resultados de Jest (opcional, si quieres reportes)
-                    junit '**/test-results/**/*.xml'
-                }
             }
         }
 
