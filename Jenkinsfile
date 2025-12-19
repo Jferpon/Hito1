@@ -1,15 +1,13 @@
 pipeline {
     agent {
         docker { 
-            image 'node:24' 
-            args '-u 1000:1000' // Corre como usuario no root, evita problemas de permisos
+            image 'node:24'
+            args '-u 1000:1000' // usuario no root para evitar permisos
         }
     }
 
     environment {
-        // Cache local dentro del workspace
         NPM_CONFIG_CACHE = "${env.WORKSPACE}/.npm-cache"
-        // Configuración de npm para que use un npmrc dentro del workspace
         NPM_CONFIG_USERCONFIG = "${env.WORKSPACE}/.npmrc"
     }
 
@@ -22,16 +20,12 @@ pipeline {
 
         stage('Install') {
             steps {
-                // Configura cache y npmrc locales
-                sh 'npm config set cache $NPM_CONFIG_CACHE --global'
-                sh 'npm config set userconfig $NPM_CONFIG_USERCONFIG'
-                sh 'npm install'
+                sh 'npm install --cache $NPM_CONFIG_CACHE --userconfig $NPM_CONFIG_USERCONFIG'
             }
         }
 
         stage('Test') {
             steps {
-                // Corre los tests sin watch, exit code detiene pipeline si falla
                 sh 'npm test -- --watchAll=false --ci'
             }
         }
