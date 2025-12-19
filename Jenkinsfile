@@ -54,7 +54,6 @@ pipeline {
             steps {
                 echo "Desplegando aplicación al host Jenkins"
                 sh """
-                    mkdir -p $DEPLOY_PATH
                     cp -r build/* $DEPLOY_PATH/
                 """
                 echo "Archivos copiados a $DEPLOY_PATH"
