@@ -48,10 +48,11 @@ pipeline {
         }
 
         stage('Deploy') {
+            agent any   // Ejecuta en el nodo host para usar Docker
             steps {
-                echo "Desplegando la aplicación en Docker"
+                echo "Desplegando la aplicación en Docker (host Jenkins)"
 
-                // Construir imagen Docker usando build
+                // Construir imagen Docker
                 sh """
                 docker build -t $APP_IMAGE .
                 """
