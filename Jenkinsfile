@@ -11,6 +11,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo "Checkout del repositorio"
@@ -34,29 +35,29 @@ pipeline {
 
         stage('Build') {
             steps {
-                echo "Construyendo la app"
-                sh 'npm run build'
+                echo "Construyendo la aplicación React"
+                sh 'CI=false npm run build'
             }
         }
 
         stage('Archive') {
             steps {
-                echo "Archivando artefactos"
+                echo "Archivando artefactos del build"
                 archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
 
         stage('Deploy') {
-            agent { label 'master' } // Ejecutar en nodo host
+            agent { label 'master' }
             when {
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
             steps {
-                echo "Desplegando aplicación al host Jenkins"
+                echo "Desplegando aplicación en ${DEPLOY_PATH}"
                 sh """
-                    cp -r build/* $DEPLOY_PATH/
+                    rm -rf ${DEPLOY_PATH}/*
+                    cp -r build/* ${DEPLOY_PATH}/
                 """
-                echo "Archivos copiados a $DEPLOY_PATH"
             }
         }
 
@@ -65,9 +66,9 @@ pipeline {
             steps {
                 echo "Verificando despliegue"
                 sh """
-                    if [ -f $DEPLOY_PATH/index.html ]; then
-                        echo "index.html encontrado en $DEPLOY_PATH"
-                        ls -lh $DEPLOY_PATH
+                    if [ -f ${DEPLOY_PATH}/index.html ]; then
+                        echo "index.html encontrado"
+                        ls -lh ${DEPLOY_PATH}
                     else
                         echo "index.html NO encontrado"
                         exit 1
@@ -79,10 +80,11 @@ pipeline {
 
     post {
         success {
-            echo "Pipeline completado correctamente. Aplicación desplegada en $DEPLOY_PATH"
+            echo "Pipeline completado correctamente"
+            echo "Aplicación desplegada en http://localhost/hitoJenkins"
         }
         failure {
-            echo "Hubo fallos en el pipeline, Deploy no ejecutado"
+            echo "El pipeline ha fallado"
         }
         always {
             echo "Pipeline finalizado"
