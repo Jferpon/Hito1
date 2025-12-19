@@ -2,36 +2,22 @@ pipeline {
     agent any
 
     stages {
-        stage('Test') {
+        stage('Install') {
             steps {
-                sh '''
-                    echo "Ejecutando tests..."
-                    for test in tests/*.sh; do
-                        echo "Ejecutando $test"
-                        bash "$test"  
-                    done
-                '''
+                sh 'npm install'
             }
         }
 
         stage('Build') {
             steps {
-                echo "Ejecutando build..."
-                sh 'echo "Hola, esto es un artefacto" > build.txt'
+                sh 'npm run build'
             }
         }
 
         stage('Archive') {
             steps {
-                archiveArtifacts artifacts: 'build.txt', fingerprint: true
-            }
-        }
-           stage('Deploy') {
-            steps {
-        	echo "Desplegando aplicacion..."
-		sh  'cp build.txt  /var/www/app/'
+                archiveArtifacts artifacts: 'build/**', fingerprint: true
             }
         }
     }
 }
-
