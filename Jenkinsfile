@@ -47,7 +47,7 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent any
+            agent { label 'master' } // Ejecutar en nodo host
             when {
                 expression { currentBuild.result == null || currentBuild.result == 'SUCCESS' }
             }
@@ -61,7 +61,7 @@ pipeline {
         }
 
         stage('Verify Deployment') {
-            agent any
+            agent { label 'master' }
             steps {
                 echo "Verificando despliegue"
                 sh """
