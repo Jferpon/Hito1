@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             image 'node:24'
-            args '-v $WORKSPACE:$WORKSPACE:rw'
+            
         }
     }
 
