@@ -1,16 +1,8 @@
 pipeline {
-    agent {
-        docker { image 'node:24' }  // Node 24 oficial
-    }
+    agent any
     stages {
-        stage('Install') {
-            steps { sh 'npm install' }
-        }
-        stage('Build') {
-            steps { sh 'npm run build' }
-        }
-        stage('Archive') {
-            steps { archiveArtifacts artifacts: 'build/**', fingerprint: true }
+        stage('Check Docker') {
+            steps { sh 'docker ps' }
         }
     }
 }
